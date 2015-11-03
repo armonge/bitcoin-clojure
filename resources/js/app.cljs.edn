@@ -1,0 +1,2 @@
+{:require  [bitcoin.app]
+ :init-fns [bitcoin.app/init]}
