@@ -1,1 +1,1 @@
-web: boot serve -p $PORT wait
+web: boot serve --dir target --port $PORT wait
