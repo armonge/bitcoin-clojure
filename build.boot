@@ -9,6 +9,7 @@
                  [org.clojure/clojurescript "1.7.58"]
                  [com.andrewmcveigh/cljs-time "0.3.14"]
                  [cljsjs/pusher "3.0.0-0"]
+                 [cljsjs/d3   "3.5.5-3"]
                  [reagent "0.5.0"]])
 
 (require
@@ -19,9 +20,7 @@
 
 (deftask build []
   (comp (speak)
-
-        (cljs)
-        ))
+        (cljs)))
 
 (deftask run []
   (comp (serve)
@@ -31,7 +30,9 @@
         (build)))
 
 (deftask production []
-  (task-options! cljs {:optimizations :advanced})
+  (task-options! cljs {:optimizations :advanced
+                      :source-map true })
+  (task-options! serve {:dir "target" })
   identity)
 
 (deftask development []

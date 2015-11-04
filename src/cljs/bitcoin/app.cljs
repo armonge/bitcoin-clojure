@@ -6,6 +6,8 @@
             [cljs-time.core :refer [now]]
             [cljs-time.coerce :refer [from-long to-long]]
             [cljs-time.format :as time-fmt]
+            [cljsjs.d3]
+            [nv]
             [cljsjs.pusher]))
 
 (enable-console-print!)
@@ -51,7 +53,7 @@
   []
   (.addGraph js/nv (fn []
                      (let [chart (.. js/nv -models lineChart
-                                     (margin #js {:left 100})
+                                     (margin (js-obj "left" 100))
                                      (useInteractiveGuideline true)
                                      (transitionDuration 350)
                                      (showLegend true)
