@@ -7,7 +7,7 @@
                  [pandeiro/boot-http        "0.6.3"      :scope "test"]
                  [org.clojure/core.async    "0.2.371"]
                  [org.clojure/clojurescript "1.7.58"]
-                 [cljsjs/d3                 "3.5.5-3"]
+                 [com.andrewmcveigh/cljs-time "0.3.14"]
                  [cljsjs/pusher "3.0.0-0"]
                  [reagent "0.5.0"]])
 
