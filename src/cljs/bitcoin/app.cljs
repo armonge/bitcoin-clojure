@@ -14,6 +14,7 @@
 
 (enable-console-print!)
 (defonce prices (r/atom (vector)))
+(def interval 10000)
 
 (defn timeout [ms]
   (let [c (chan)]
@@ -43,11 +44,12 @@
 (defn price-list
   "Renders the list of prices"
   []
-  [:div.col-md-2.col-md-pull-10
-   [:h3 "Last " (count @prices) " prices"]
-   [:ul
-    (for [item (take-last 10 @prices) ]
-      ^{:key item} [price-elem item])]])
+  (let [prices (take-last 10 @prices)]
+    [:div.col-md-2.col-md-pull-10
+     [:h3 "Last " (count prices) " prices"]
+     [:ul
+      (for [item prices ]
+        ^{:key item} [price-elem item])]]))
 
 (defn vizualization 
   "Renders a d3 graph"
@@ -91,8 +93,8 @@
       ; only when it's an actual new value
       (when-not (cljs-time.core/= (get last-price :date) (get price :date))
         (swap! prices conj price)
-        (redraw @prices))
-      (<! (timeout 10000)))
+        (redraw (take-last 10 @prices)))
+      (<! (timeout interval)))
     (recur ))
 
 ; i want to show the vizualization if there are already some prices loaded
