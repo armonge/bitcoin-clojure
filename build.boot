@@ -30,7 +30,7 @@
         (build)))
 
 (deftask production []
-  (task-options! cljs {:optimizations :advanced
+  (task-options! cljs {:optimizations :simple
                       :source-map true })
   (task-options! serve {:dir "target" })
   identity)
