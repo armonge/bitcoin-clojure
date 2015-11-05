@@ -1,6 +1,14 @@
 var nv = {
+    "version": {},
     "dev": {},
-    "tooltip": function () {},
+    "tooltip": {
+        "show": function () {},
+        "findFirstNonSVGParent": function () {},
+        "findTotalOffsetTop": function () {},
+        "findTotalOffsetLeft": function () {},
+        "calcTooltipPosition": function () {},
+        "cleanup": function () {}
+    },
     "utils": {
         "windowSize": function () {},
         "windowResize": function () {},
@@ -10,85 +18,69 @@ var nv = {
         "pjax": function () {},
         "calcApproxTextWidth": function () {},
         "NaNtoZero": function () {},
-        "renderWatch": function () {},
-        "deepExtend": function () {},
-        "state": function () {},
-        "optionsFunc": function () {},
-        "calcTicksX": function () {},
-        "calcTicksY": function () {},
-        "initOption": function () {},
-        "initOptions": function () {},
-        "inheritOptionsD3": function () {},
-        "arrayUnique": function () {},
-        "symbolMap": {
-            "_": function () {}
-        },
-        "symbol": function () {},
-        "inheritOptions": function () {},
-        "initSVG": function () {},
-        "sanitizeHeight": function () {},
-        "sanitizeWidth": function () {},
-        "availableHeight": function () {},
-        "availableWidth": function () {},
-        "noData": function () {}
+        "optionsFunc": function () {}
     },
     "models": {
         "tooltip": function () {},
         "axis": function () {},
-        "boxPlot": function () {},
-        "boxPlotChart": function () {},
+        "historicalBar": function () {},
         "bullet": function () {},
         "bulletChart": function () {},
-        "candlestickBar": function () {},
         "cumulativeLineChart": function () {},
         "discreteBar": function () {},
         "discreteBarChart": function () {},
         "distribution": function () {},
-        "furiousLegend": function () {},
-        "historicalBar": function () {},
         "historicalBarChart": function () {},
-        "ohlcBarChart": function () {},
-        "candlestickBarChart": function () {},
+        "indentedTree": function () {},
         "legend": function () {},
         "line": function () {},
         "lineChart": function () {},
         "linePlusBarChart": function () {},
         "lineWithFocusChart": function () {},
+        "linePlusBarWithFocusChart": function () {},
         "multiBar": function () {},
         "multiBarChart": function () {},
         "multiBarHorizontal": function () {},
         "multiBarHorizontalChart": function () {},
         "multiChart": function () {},
         "ohlcBar": function () {},
-        "parallelCoordinates": function () {},
         "pie": function () {},
         "pieChart": function () {},
         "scatter": function () {},
         "scatterChart": function () {},
+        "scatterPlusLineChart": function () {},
         "sparkline": function () {},
         "sparklinePlus": function () {},
         "stackedArea": function () {},
-        "stackedAreaChart": function () {},
-        "sunburst": function () {},
-        "sunburstChart": function () {}
+        "stackedAreaChart": function () {}
     },
     "charts": function () {},
+    "graphs": function () {},
     "logs": function () {},
-    "dom": {
-        "write": function () {},
-        "read": function () {}
-    },
     "dispatch": {
         "render_start": function () {},
         "render_end": function () {},
         "on": function () {}
     },
     "log": function () {},
-    "deprecated": function () {},
     "render": function () {},
     "addGraph": function () {},
+    "identity": function () {},
+    "strip": function () {},
     "interactiveGuideline": function () {},
     "interactiveBisect": function () {},
-    "nearestValueIndex": function () {},
-    "version": {}
-};
+    "nearestValueIndex": function () {}
+}
+
+nv.cumulativeLineChart.prototype = {
+  "useInteractiveGuideline": {},
+  "showLegend": {},
+  "showYAxis": {},
+  "showXAxis": {},
+  "xAxis": {},
+  "yAxis": {},
+}
+
+nv.chart.prototype = {
+  "axisLabel": {},
+}
