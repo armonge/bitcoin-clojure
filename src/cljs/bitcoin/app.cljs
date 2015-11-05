@@ -1,56 +1,61 @@
 (ns bitcoin.app
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:use [jayq.core :only [ajax]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
+                   [jayq.macros :refer [let-ajax]]
+                   )
   (:require [reagent.core :as r :refer [atom]]
-            [cljs.core.async :as async :refer [>! <! put! chan alts! close!]]
+            [cljs.core.async :as async :refer [<! put! chan close!]]
             [cljs.core :as cljs :refer [js->clj]]
             [cljs-time.core :refer [now]]
-            [cljs-time.coerce :refer [from-long to-long]]
+            [cljs-time.coerce :refer [from-long to-long from-string]]
             [cljs-time.format :as time-fmt]
             [cljsjs.d3]
-            [nv]
-            [cljsjs.pusher]))
+            [nv]))
 
 (enable-console-print!)
-(defonce ticks (r/atom (sorted-map)))
+(defonce prices (r/atom (vector)))
 
-; CHANNEL: live_trades, EVENT: trade, PUSHER KEY: de504dc5763aeef9ff52
-(def socket (new js/Pusher "de504dc5763aeef9ff52" ))
-(def ticker-channel (.subscribe socket "live_trades"))
+(defn timeout [ms]
+  (let [c (chan)]
+    (js/setTimeout (fn [] (close! c)) ms)
+    c))
 
-(defn add-tick [{id :id price :price}] 
-  "Adds a new tick from a pusher event"
-  (let [tick {:id id :price price :date (now)}]
-    (swap! ticks assoc id tick)))
+(defn request [url]
+  (let [c (chan)]
+    (let-ajax [response {:url url
+                         :dataType :json}]
+      (put! c response))
+  c))
 
-(defn format-ticks [ticks]
-  "Returns the ticks in a format good to be used for nv"
-  (let [ticks (take-last 100 (vals ticks))]
-    (mapv  (fn [tick] (js-obj "x" (to-long (get tick :date) ) "y" (get tick :price))) ticks)))
 
-(defn pusher-channel->event
-  "Given a pusher socket, channel and event name returns a core.async channel of observed events.
-  Can supply the core.async channel as an optional third argument"
-  ([socket channel event-name] (pusher-channel->event socket channel event-name (chan)))
-  ([socket channel event-name c]
-   (.bind channel event-name (fn [event] (let [event (js->clj event :keywordize-keys true)]
-                                           (put! c event))))
-   c))
+(defn format-prices [prices]
+  "Returns the prices in a format good to be used for nv"
+  (let [prices (take-last 10 prices)]
+    (map  (fn [price] (js-obj 
+                        "x" (to-long (get price :date) )
+                        "y" (get price :price)))
+          prices)))
 
 (defn price-elem [{price :price id :id}]
   "Renders a new price"
   [:li {:id (str "price-" id)} price])
 
-(defn price-list []
+(defn price-list
   "Renders the list of prices"
+  []
   [:div.col-md-2.col-md-pull-10
-   [:h3 "Last 5 prices"]
+   [:h3 "Last " (count @prices) " prices"]
    [:ul
-    (for [item (take-last 5 (vals @ticks) )]
+    (for [item (take-last 10 @prices) ]
       ^{:key item} [price-elem item])]])
 
-(defn vizualization [] 
+(defn vizualization 
   "Renders a d3 graph"
   []
+
+  [:div#d3-node.col-md-10.col-md-push-2 {:style {:height "420"}}  [:svg ]])
+
+(defn redraw [prices] 
   (.addGraph js/nv (fn []
                      (let [chart (.. js/nv -models lineChart
                                      (margin (js-obj "left" 100))
@@ -66,28 +71,38 @@
                            (axisLabel "Price") 
                            (tickFormat (.format js/d3 "$ ,r")))
 
-                      (go-loop []
-                       (let [c (pusher-channel->event socket ticker-channel "trade")
-                             tick (<! c)]
-                         ; (let [my-data (format-ticks @ticks)]
-                         (add-tick tick)
-                         (let [my-data (format-ticks @ticks)]
-                           (.. js/d3 (select "#d3-node svg")
-                               (datum (clj->js [{:values my-data
-                                                 :key "Price"
-                                                 :color "red"
-                                                 }]))
-                               (call chart))))
-                         (recur)))))
-  [:div#d3-node.col-md-10.col-md-push-2 {:style {:height "420"}}  [:svg ]])
+                          (let [my-data (format-prices prices)]
+                            (.. js/d3 (select "#d3-node svg")
+                                (datum (clj->js [{:values my-data
+                                                  :key "Price over time"
+                                                  :color "red"
+                                                  }]))
+                                (call chart)))
+                          ))))
 
+; Makes a request every 5 seconds to coindesk
+(go-loop []
+    (let [response (<! (request "https://api.coindesk.com/v1/bpi/currentprice.json"))
+          response (js->clj response)
+          last-price (last @prices)
+          price {:price (get-in response ["bpi" "USD" "rate_float"]) 
+                            :date (from-string (get-in response ["time" "updatedISO"])) }]
 
+      ; only when it's an actual new value
+      (when-not (cljs-time.core/= (get last-price :date) (get price :date))
+        (swap! prices conj price)
+        (redraw @prices))
+      (<! (timeout 10000)))
+    (recur ))
+
+; i want to show the vizualization if there are already some prices loaded
+(if @prices 
+    (redraw @prices))
 
 (defn container []
   [:div.row
-   [vizualization]
-   [price-list]]
-  )
+    [vizualization]
+    [price-list]])
 
 (defn init []
   (r/render-component [container] (.getElementById js/document "container")))
