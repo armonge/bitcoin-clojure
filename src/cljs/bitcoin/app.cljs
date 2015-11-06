@@ -36,6 +36,7 @@
   "Renders a new price"
   [:li {:id (str "price-" id)} price])
 
+
 (defn price-list
   "Renders the list of prices"
   []
@@ -44,7 +45,7 @@
      [:h3 "Last " (count prices) " prices"]
      [:ul
       (for [item prices ]
-        ^{:key item} [price-elem item])]]))
+        [price-elem item])]]))
 
 (defn vizualization 
   "Renders a d3 graph"
@@ -81,20 +82,15 @@
 (go-loop []
     (let [response (<! (request "https://api.coindesk.com/v1/bpi/currentprice.json"))
           response (js->clj response)
-          last-price (last @prices)
-          price {:price (get-in response ["bpi" "USD" "rate_float"]) 
-                            :date (from-string (get-in response ["time" "updatedISO"])) }]
-
-      ; only when it's an actual new value
-      (when-not (cljs-time.core/= (get last-price :date) (get price :date))
-        (swap! prices conj price)
-        (redraw (take-last 10 @prices)))
+          price {:price (get-in response ["bpi" "USD" "rate_float"]) :date (now) }]
+      (swap! prices conj price)
+      (redraw (take-last 10 @prices))
       (<! (timeout interval)))
     (recur ))
 
 ; i want to show the vizualization if there are already some prices loaded
-(if @prices 
-    (redraw @prices))
+(let [prices @prices]
+  (if prices (redraw (take-last 10 prices))))
 
 (defn container []
   [:div.row
