@@ -4,7 +4,7 @@
                    [jayq.macros :refer [let-ajax]]
                    )
   (:require [reagent.core :as r :refer [atom]]
-            [cljs.core.async :as async :refer [<! put! chan close!]]
+            [cljs.core.async :as async :refer [<! put! chan close! timeout]]
             [cljs.core :as cljs :refer [js->clj]]
             [cljs-time.core :refer [now]]
             [cljs-time.coerce :refer [from-long to-long from-string]]
@@ -15,11 +15,6 @@
 (enable-console-print!)
 (defonce prices (r/atom (vector)))
 (def interval 10000)
-
-(defn timeout [ms]
-  (let [c (chan)]
-    (js/setTimeout (fn [] (close! c)) ms)
-    c))
 
 (defn request [url]
   (let [c (chan)]
